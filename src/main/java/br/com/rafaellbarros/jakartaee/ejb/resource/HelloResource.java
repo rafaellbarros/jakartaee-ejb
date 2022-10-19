@@ -6,8 +6,10 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.ejb.EJB;
+import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -16,7 +18,9 @@ import javax.ws.rs.core.Response;
 import java.util.Properties;
 
 
+@RequestScoped
 @Path("/hello")
+@Tag(name = "Hello resource", description = "Get hello message")
 public class HelloResource {
 
     @EJB

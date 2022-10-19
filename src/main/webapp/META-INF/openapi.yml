@@ -1,0 +1,33 @@
+---
+openapi: 3.0.0
+info:
+  title: JakartaEE EJb Application
+  description: Application example JakartaEE, EJB and Hibernate
+  contact:
+    name: Rafael Barros
+    url: http://rafaelbarros.azurewebsites.net/
+    email: rafaelbarros.df@gmail.com
+  license:
+    name: Eclipse Public License - v 1.0
+    url: https://www.eclipse.org/legal/epl-v10.html
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+  - url: /example
+    description: localhost
+paths:
+  /api/hello:
+    get:
+      summary: Outputs Hello Message
+      description: This method outputs Hello message
+      responses:
+        "404":
+          description: 'We could not find the Hello message '
+          content:
+            text/plain: {}
+        "200":
+          description: We found the Hello message
+          content:
+            application/json:
+              schema:
+                type: object

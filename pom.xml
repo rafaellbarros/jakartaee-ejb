@@ -34,6 +34,7 @@
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
         <version.payara.micro>5.182</version.payara.micro>
+        <version.keycloak>18.0.0</version.keycloak>
     </properties>
 
     <dependencies>
@@ -80,6 +81,33 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.keycloak.bom</groupId>
+            <artifactId>keycloak-adapter-bom</artifactId>
+            <version>${version.keycloak}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak.bom</groupId>
+            <artifactId>keycloak-misc-bom</artifactId>
+            <version>${version.keycloak}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak.bom</groupId>
+            <artifactId>keycloak-spi-bom</artifactId>
+            <version>${version.keycloak}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-model-legacy</artifactId>
+            <version>19.0.1</version>
         </dependency>
 
         <dependency>

@@ -48,5 +48,26 @@ public class UserResource {
         return Response.ok(userService.getById(id)).build();
     }
 
+    @GET
+    @Path("/username/{username}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "404",
+                            description = "We could not find the username User",
+                            content = @Content(mediaType = "text/plain"))
+                    ,
+                    @APIResponse(
+                            responseCode = "200",
+                            description = "We found the username User",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Properties.class)))})
+    @Operation(summary = "Outputs username",
+            description = "This method outputs username User")
+    public Response getUserByUsername(@PathParam("username") final String username) {
+        return Response.ok(userService.getUserByUsername(username)).build();
+    }
+
 
 }

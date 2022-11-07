@@ -100,14 +100,16 @@ public class UserRepository extends BaseFederationRepository<User> {
         return result.isEmpty() ? null : result.get(0);
     }
 
+    // TODO: Refactoring
     @Override
-    public User getUserByEmail(String email) {
+    public User getUserByEmail(final String email) {
         logger.debugf("getUserByEmail called with email = {}", email);
+        // TODO: CREATE VALIDATION OR USER BEANVALIDATION IN DTO
 
-        if (this.config == null) {
+        if (this.getConfig() == null) {
             System.out.println("A");
         } else {
-            if (this.config.queryUserByEmail() == null) {
+            if (this.getConfig().queryUserByEmail() == null) {
                 System.out.println("B");
             }
         }
@@ -115,8 +117,9 @@ public class UserRepository extends BaseFederationRepository<User> {
             System.out.println("C");
         }
 
-        TypedQuery<User> query = em.createQuery(this.config.queryUserByEmail(), User.class);
+        TypedQuery<User> query = em.createNamedQuery("getUserByEmail",  User.class);
         query.setParameter("email", email);
+        query.setHint("org.hibernate.comment", "search user by email.");
 
         List<User> result = query.getResultList();
 

@@ -28,7 +28,7 @@ public class Constants {
     final static String DEFAULT_AUTH_MAX_REPEATED_CHARS_PASSWORD_LENGTH = "3";
     final static String DEFAULT_AUTH_USER_REGISTRATION = "true";
     final static String DEFAULT_SQL_QUERY_USER_BY_USERNAME = "select u from User u where lower(u.username) = lower(:username)";
-    final static String DEFAULT_SQL_QUERY_USER_BY_EMAIL = "select u from User u where lower(u.email) = lower(:email)";
+    final static String DEFAULT_SQL_QUERY_USER_BY_EMAIL = "select u from User u where lower(u.email) like lower(:email)";
     final static String DEFAULT_SQL_QUERY_USER_COUNT = "select count(u.id) from User u";
     final static String DEFAULT_SQL_QUERY_ALL_USERS = "select u from User u";
     final static String DEFAULT_SQL_QUERY_SEARCH_USER = "select u from User u where ( lower(u.username) like :search or lower(u.email) like :search ) order by u.username";

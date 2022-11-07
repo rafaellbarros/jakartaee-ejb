@@ -65,8 +65,29 @@ public class UserResource {
                                     schema = @Schema(implementation = Properties.class)))})
     @Operation(summary = "Outputs username",
             description = "This method outputs username User")
-    public Response getUserByUsername(@PathParam("username") final String username) {
-        return Response.ok(userService.getUserByUsername(username)).build();
+    public Response getByUsername(@PathParam("username") final String username) {
+        return Response.ok(userService.getByUsername(username)).build();
+    }
+
+    @GET
+    @Path("/email/{email}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "404",
+                            description = "We could not find the email User",
+                            content = @Content(mediaType = "text/plain"))
+                    ,
+                    @APIResponse(
+                            responseCode = "200",
+                            description = "We found the email User",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Properties.class)))})
+    @Operation(summary = "Outputs email",
+            description = "This method outputs email User")
+    public Response getByEmail(@PathParam("email") final String email) {
+        return Response.ok(userService.getByEmail(email)).build();
     }
 
 

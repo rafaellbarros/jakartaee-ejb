@@ -1,7 +1,6 @@
 package br.com.rafaellbarros.jakartaee.ejb.service;
 
 import br.com.rafaellbarros.jakartaee.ejb.model.dto.UserDTO;
-import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
 import br.com.rafaellbarros.jakartaee.ejb.model.mapper.UserMapper;
 import br.com.rafaellbarros.jakartaee.ejb.repository.UserRepository;
 
@@ -18,8 +17,12 @@ public class UserService {
         return UserMapper.INSTANCE.toDTO(userRepository.getUserById(id));
     }
 
-    public UserDTO getUserByUsername(final String username) {
+    public UserDTO getByUsername(final String username) {
         return UserMapper.INSTANCE.toDTO(userRepository.getUserByUsername(username));
+    }
+
+    public UserDTO getByEmail(final String email) {
+        return UserMapper.INSTANCE.toDTO(userRepository.getUserByEmail(email));
     }
 
 }

@@ -111,5 +111,25 @@ public class UserResource {
         return Response.ok(userService.getUsersCount()).build();
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "404",
+                            description = "We could not find Users",
+                            content = @Content(mediaType = "text/plain"))
+                    ,
+                    @APIResponse(
+                            responseCode = "200",
+                            description = "We found the Users",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Properties.class)))})
+    @Operation(summary = "Outputs Users",
+            description = "This method outputs Users")
+    public Response getUsers() {
+        return Response.ok(userService.getUsers()).build();
+    }
+
 
 }

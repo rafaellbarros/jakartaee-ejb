@@ -26,6 +26,7 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
         this.keycloakId = StorageId.keycloakId(model, String.valueOf(getEntity().getId()));
     }
 
+    // TODO: Only tests for rest api
     public User getEntity() {
         return this.entity;
     }

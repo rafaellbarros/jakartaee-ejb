@@ -5,6 +5,7 @@ import br.com.rafaellbarros.jakartaee.ejb.config.UserFederationConfig;
 import br.com.rafaellbarros.jakartaee.ejb.core.repository.BaseFederationRepository;
 import br.com.rafaellbarros.jakartaee.ejb.helper.CredentialHelper;
 import br.com.rafaellbarros.jakartaee.ejb.helper.IdentityHelper;
+import br.com.rafaellbarros.jakartaee.ejb.model.adapter.UserAdapterModel;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
 import org.jboss.logging.Logger;
@@ -139,7 +140,7 @@ public class UserRepository extends BaseFederationRepository<User> {
     public List<UserModel> getUsers(Integer firstResult, Integer maxResults, RealmModel realm) {
         logger.debug("getUsers called");
 
-        TypedQuery<User> query = em.createQuery(this.config.queryAllUsers(), User.class);
+        TypedQuery<User> query = em.createNamedQuery("getAllUsers", User.class);
 
         List<User> results = query.getResultList();
 
@@ -154,7 +155,13 @@ public class UserRepository extends BaseFederationRepository<User> {
         }
 
         List<UserModel> users = new LinkedList<>();
-        for (User entity : results) users.add(new UserAdapter(this.session, realm, this.model, entity));
+        // TODO: for SSO
+        // for (User entity : results) users.add(new UserAdapter(this.session, realm, this.model, entity));
+
+        for (User entity: results) {
+            users.add(new UserAdapterModel(entity));
+        }
+
 
         return users;
     }

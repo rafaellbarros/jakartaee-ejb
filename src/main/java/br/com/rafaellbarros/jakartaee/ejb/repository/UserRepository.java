@@ -3,9 +3,10 @@ package br.com.rafaellbarros.jakartaee.ejb.repository;
 import br.com.rafaellbarros.jakartaee.ejb.adapter.UserAdapter;
 import br.com.rafaellbarros.jakartaee.ejb.config.UserFederationConfig;
 import br.com.rafaellbarros.jakartaee.ejb.core.repository.BaseFederationRepository;
-import br.com.rafaellbarros.jakartaee.ejb.helper.CredentialHelper;
 import br.com.rafaellbarros.jakartaee.ejb.helper.IdentityHelper;
 import br.com.rafaellbarros.jakartaee.ejb.model.adapter.UserAdapterModel;
+import br.com.rafaellbarros.jakartaee.ejb.model.builder.PersonBuilder;
+import br.com.rafaellbarros.jakartaee.ejb.model.builder.UserBuilder;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
 import org.jboss.logging.Logger;
@@ -15,6 +16,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.Remove;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -22,8 +24,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import java.sql.Date;
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +39,12 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     @PersistenceContext(name = "keycloak-user-storage-jpa")
     protected EntityManager em;
+
+    @EJB
+    private PersonBuilder personBuilder;
+
+    @EJB
+    private UserBuilder userBuilder;
 
     protected UserFederationConfig config;
 
@@ -192,74 +198,49 @@ public class UserRepository extends BaseFederationRepository<User> {
 
 
     @Transactional
-    public UserModel addUser(String username) {
-        logger.debugf("addUser() called with username = {}", username);
-
-        if (!IdentityHelper.isValidUsername(em, username)) {
-            logger.errorf("Username {} already exists", username);
-            throw new RuntimeException("Username already exists.");
-        }
-
-        Person p = null;
-        User u = null;
-
+    public UserModel addUser(final String username) {
         try {
-            p = new Person();
-            p.setName(username);
-            p.setMiddle("-");
-            p.setFamily("-");
-            p.setIssn("-");
-            p.setStatus("1");
-            p.setCreation(Date.valueOf(LocalDate.now()));
-            em.persist(p);
-            em.flush();
+            logger.info("addUser() called with username: " + username);
+            isValidUsername(username);
+            final Person person = persistPerson(username);
+            final User user = persistUser(person);
 
-           // em.flush();
-            // userTransaction.commit();
-            // em.getTransaction().commit();
-
-            // User will not have direct access upon registration.
-            // An update-password required action will be set for new users.
-            u = new User();
-            CredentialHelper temporaryCredential = new CredentialHelper.PasswordGeneratorBuilder()
-                    .useDigits(true)
-                    .useLower(true)
-                    .useUpper(true)
-                    .usePunctuation(true)
-                    .build();
-
-            u.setId(p.getId());
-            u.setPerson(p);
-            u.setUsername(username);
-            u.setPassword(temporaryCredential.generate(20));
-            u.setEmail("-");
-
-            em.persist(u);
-            em.flush();
-           // em.persist(u);
-            //em.flush();
-            // em.clear();
-            // userTransaction.commit();
-
+            // UserAdapter userAdapter = new UserAdapter(this.session, realm, this.model, u);
+            UserAdapterModel userAdapterModel = new UserAdapterModel(user);
+            logger.info("addUser() successful User: " + user);
+            logger.info("addUser() userAdapterModel: " + userAdapterModel);
+            return userAdapterModel;
         } catch (PersistenceException e) {
             logger.errorf("[ERROR] addUser() {} : {}", username, e.getMessage());
             e.printStackTrace();
         }
-        // UserAdapter userAdapter = new UserAdapter(this.session, realm, this.model, u);
+        return null;
+    }
 
+    private User persistUser(Person person) {
+        final User user = userBuilder.buildAdd(person);
+        em.persist(user);
+        em.flush();
+        return user;
+    }
 
-        UserAdapterModel userAdapterModel = new UserAdapterModel(u);
+    private Person persistPerson(String username) {
+        final Person person = personBuilder.buildAdd(username);
+        em.persist(person);
+        em.flush();
+        return person;
+    }
 
-        logger.debugf("successful added user: {}", username);
-        logger.debugf("userAdapterModel: {}", userAdapterModel);
-        return userAdapterModel;
+    private void isValidUsername(String username) {
+        if (!IdentityHelper.isValidUsername(em, username)) {
+            logger.errorf("Username {} already exists", username);
+            throw new RuntimeException("Username already exists.");
+        }
     }
 
     @Override
     public Boolean removeUser(String externalId) {
         logger.debugf("removeUser called with externalId = {}", externalId);
-
-        // EntityManager em = JPAUtil.getEntityManager();
 
         User entity = getUserByUsername(externalId);
         if (entity == null) return false;
@@ -275,8 +256,6 @@ public class UserRepository extends BaseFederationRepository<User> {
     @Override
     public Boolean updateUser(User entity) {
         logger.debug("updateUser called");
-
-        // EntityManager em = JPAUtil.getEntityManager();
 
         if (entity == null) return false;
 

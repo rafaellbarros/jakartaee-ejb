@@ -90,5 +90,26 @@ public class UserResource {
         return Response.ok(userService.getByEmail(email)).build();
     }
 
+    @GET
+    @Path("/count")
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "404",
+                            description = "We could not find count Users",
+                            content = @Content(mediaType = "text/plain"))
+                    ,
+                    @APIResponse(
+                            responseCode = "200",
+                            description = "We found the count Users",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = Properties.class)))})
+    @Operation(summary = "Outputs count Users",
+            description = "This method outputs count Users")
+    public Response count() {
+        return Response.ok(userService.getUsersCount()).build();
+    }
+
 
 }

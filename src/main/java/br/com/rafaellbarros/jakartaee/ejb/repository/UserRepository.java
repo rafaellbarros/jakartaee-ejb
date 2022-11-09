@@ -7,7 +7,6 @@ import br.com.rafaellbarros.jakartaee.ejb.helper.CredentialHelper;
 import br.com.rafaellbarros.jakartaee.ejb.helper.IdentityHelper;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
-
 import org.jboss.logging.Logger;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
@@ -133,10 +132,7 @@ public class UserRepository extends BaseFederationRepository<User> {
     @Override
     public int getUsersCount() {
         logger.debug("getUsersCount called");
-
-        TypedQuery<User> query = em.createQuery(this.config.queryUserCount(), User.class);
-        Object count = query.getSingleResult();
-        return count == null ? null : ((Number) count).intValue();
+        return ((Number) em.createNamedQuery("getUserCount").getSingleResult()).intValue();
     }
 
     @Override

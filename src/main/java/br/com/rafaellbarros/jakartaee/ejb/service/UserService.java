@@ -25,4 +25,8 @@ public class UserService {
         return UserMapper.INSTANCE.toDTO(userRepository.getUserByEmail(email));
     }
 
+    public int getUsersCount() {
+        return userRepository.getUsersCount();
+    }
+
 }

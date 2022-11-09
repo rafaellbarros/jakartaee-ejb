@@ -27,10 +27,20 @@ public class Constants {
     final static String DEFAULT_AUTH_MAX_REQUIRED_PASSWORD_LENGTH = "20";
     final static String DEFAULT_AUTH_MAX_REPEATED_CHARS_PASSWORD_LENGTH = "3";
     final static String DEFAULT_AUTH_USER_REGISTRATION = "true";
+
+    //language=SQL
     final static String DEFAULT_SQL_QUERY_USER_BY_USERNAME = "select u from User u where lower(u.username) = lower(:username)";
+
+    //language=SQL
     final static String DEFAULT_SQL_QUERY_USER_BY_EMAIL = "select u from User u where lower(u.email) like lower(:email)";
+
+    //language=SQL
     final static String DEFAULT_SQL_QUERY_USER_COUNT = "select count(u.id) from User u";
+
+    //language=SQL
     final static String DEFAULT_SQL_QUERY_ALL_USERS = "select u from User u";
+
+    //language=SQL
     final static String DEFAULT_SQL_QUERY_SEARCH_USER = "select u from User u where ( lower(u.username) like :search or lower(u.email) like :search ) order by u.username";
     final static String DEFAULT_DEBUG = "true";
     final static String DEFAULT_DEBUG_SHOW_SQL = "true";

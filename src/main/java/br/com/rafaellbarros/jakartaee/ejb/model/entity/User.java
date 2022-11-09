@@ -1,14 +1,15 @@
 package br.com.rafaellbarros.jakartaee.ejb.model.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
+@Builder
 @Setter
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 @NamedQueries({
         @NamedQuery(name="getUserByUsername", query="select u from User u where lower(u.username) = lower(:username)"),

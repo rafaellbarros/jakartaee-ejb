@@ -1,5 +1,6 @@
 package br.com.rafaellbarros.jakartaee.ejb.resource;
 
+import br.com.rafaellbarros.jakartaee.ejb.model.request.UserRequestDTO;
 import br.com.rafaellbarros.jakartaee.ejb.service.UserService;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -10,10 +11,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Properties;
@@ -129,6 +127,21 @@ public class UserResource {
             description = "This method outputs Users")
     public Response getUsers() {
         return Response.ok(userService.getUsers()).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "200",
+                            description = "We add the username",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON))})
+    @Operation(summary = "Outputs User",
+            description = "This method outputs User")
+    public Response addUser(UserRequestDTO userRequestDTO) {
+        return Response.ok(userService.addUser(userRequestDTO)).build();
     }
 
 

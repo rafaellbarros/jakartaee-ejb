@@ -1,6 +1,7 @@
 package br.com.rafaellbarros.jakartaee.ejb.model.adapter;
 
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
+import lombok.ToString;
 import org.keycloak.models.*;
 
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+@ToString
 public class UserAdapterModel implements UserModel {
 
     public UserAdapterModel() { }

@@ -1,15 +1,16 @@
 package br.com.rafaellbarros.jakartaee.ejb.model.entity;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Date;
 
+@Builder
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
 @NamedQueries({
         @NamedQuery(name="getPersonByISSN", query="select p from Person p where p.id = :issn")
@@ -19,9 +20,9 @@ import java.sql.Date;
 public class Person implements Serializable {
 
     @Id
-    @Column(name = "ID_PERSON", nullable = false, precision = 0)
+    @Column(name = "ID_PERSON", nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_person_generator")
-    @SequenceGenerator(sequenceName = "OT.SEQ_PERSON", initialValue = 1, allocationSize = 1, schema = "OT", name = "seq_person_generator")
+    @SequenceGenerator(sequenceName = "OT.SEQ_PERSON", initialValue = 1, allocationSize = 10, schema = "OT", name = "seq_person_generator")
     private Long id;
 
     @Column(name = "NM_PERSON", nullable = false, length = 150)

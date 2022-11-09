@@ -15,15 +15,13 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.Remove;
 import javax.ejb.Stateless;
-import javax.ejb.TransactionManagement;
-import javax.ejb.TransactionManagementType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
-import javax.transaction.*;
+import javax.transaction.Transactional;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -31,7 +29,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Stateless
-@TransactionManagement(TransactionManagementType.BEAN)
 public class UserRepository extends BaseFederationRepository<User> {
 
     protected static final Logger logger = Logger.getLogger(UserRepository.class);
@@ -41,10 +38,7 @@ public class UserRepository extends BaseFederationRepository<User> {
     protected KeycloakSession session;
 
     @PersistenceContext(name = "keycloak-user-storage-jpa")
-    EntityManager em;
-
-    @Resource
-    private UserTransaction userTransaction;
+    protected EntityManager em;
 
     protected UserFederationConfig config;
 
@@ -105,7 +99,6 @@ public class UserRepository extends BaseFederationRepository<User> {
     public User getUserByEmail(final String email) {
         logger.debugf("getUserByEmail called with email = {}", email);
         // TODO: CREATE VALIDATION OR USER BEANVALIDATION IN DTO
-
         if (this.getConfig() == null) {
             System.out.println("A");
         } else {
@@ -196,11 +189,13 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     // https://access.redhat.com/solutions/32314
     // https://stackoverflow.com/questions/2506411/how-to-troubleshoot-ora-02049-and-lock-problems-in-general-with-oracle
-    @Override
-    public UserModel addUser(String username, RealmModel realm) {
-        logger.debugf("addUser called with username = {}", username);
 
-        if (!IdentityHelper.isValidUsername(entityManager,this.config, username)) {
+
+    @Transactional
+    public UserModel addUser(String username) {
+        logger.debugf("addUser() called with username = {}", username);
+
+        if (!IdentityHelper.isValidUsername(em, username)) {
             logger.errorf("Username {} already exists", username);
             throw new RuntimeException("Username already exists.");
         }
@@ -209,8 +204,6 @@ public class UserRepository extends BaseFederationRepository<User> {
         User u = null;
 
         try {
-            userTransaction.begin();
-
             p = new Person();
             p.setName(username);
             p.setMiddle("-");
@@ -220,8 +213,10 @@ public class UserRepository extends BaseFederationRepository<User> {
             p.setCreation(Date.valueOf(LocalDate.now()));
             em.persist(p);
             em.flush();
-            userTransaction.commit();
-            em.getTransaction().commit();
+
+           // em.flush();
+            // userTransaction.commit();
+            // em.getTransaction().commit();
 
             // User will not have direct access upon registration.
             // An update-password required action will be set for new users.
@@ -241,40 +236,30 @@ public class UserRepository extends BaseFederationRepository<User> {
 
             em.persist(u);
             em.flush();
-            em.clear();
-            userTransaction.commit();
+           // em.persist(u);
+            //em.flush();
+            // em.clear();
+            // userTransaction.commit();
 
-        } catch (NotSupportedException e) {
-            e.printStackTrace();
-        } catch (SystemException e) {
-            e.printStackTrace();
-        } catch (HeuristicRollbackException e) {
-            e.printStackTrace();
-        } catch (HeuristicMixedException e) {
-            e.printStackTrace();
-        } catch (RollbackException e) {
+        } catch (PersistenceException e) {
+            logger.errorf("[ERROR] addUser() {} : {}", username, e.getMessage());
             e.printStackTrace();
         }
-        finally {
-            em.close();
-            try {
-                if (userTransaction.getStatus() == Status.STATUS_ACTIVE)
-                    userTransaction.rollback();
-            } catch (Throwable e) { }
-        }
+        // UserAdapter userAdapter = new UserAdapter(this.session, realm, this.model, u);
 
-        UserAdapter userAdapter = new UserAdapter(this.session, realm, this.model, u);
-        // userAdapter.setEmailVerified(false);
-        // userAdapter.setEnabled(false);
-        // userAdapter.setPassword(u.getPassword());
+
+        UserAdapterModel userAdapterModel = new UserAdapterModel(u);
 
         logger.debugf("successful added user: {}", username);
-        return userAdapter;
+        logger.debugf("userAdapterModel: {}", userAdapterModel);
+        return userAdapterModel;
     }
 
     @Override
     public Boolean removeUser(String externalId) {
         logger.debugf("removeUser called with externalId = {}", externalId);
+
+        // EntityManager em = JPAUtil.getEntityManager();
 
         User entity = getUserByUsername(externalId);
         if (entity == null) return false;
@@ -290,6 +275,8 @@ public class UserRepository extends BaseFederationRepository<User> {
     @Override
     public Boolean updateUser(User entity) {
         logger.debug("updateUser called");
+
+        // EntityManager em = JPAUtil.getEntityManager();
 
         if (entity == null) return false;
 

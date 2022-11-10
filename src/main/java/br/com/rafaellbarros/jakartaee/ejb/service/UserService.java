@@ -37,6 +37,10 @@ public class UserService {
         return userRepository.getUsers(0, 10, null);
     }
 
+    public List<UserModel> searchForUserByUsernameOrEmail(final String search) {
+        return userRepository.searchForUserByUsernameOrEmail(search, 0, 10, null);
+    }
+
     public UserModel addUser(final UserRequestDTO userRequestDTO) {
         return userRepository.addUser(userRequestDTO.getUsername());
     }

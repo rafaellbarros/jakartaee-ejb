@@ -20,13 +20,12 @@ public class UserAdapter extends AbstractUserAdapterFederatedStorage {
 
     protected String keycloakId;
 
-    public UserAdapter(KeycloakSession session, RealmModel realm, ComponentModel model, User entity) {
+    public UserAdapter(final KeycloakSession session, final RealmModel realm, final ComponentModel model, final User entity) {
         super(session, realm, model);
         this.entity = entity;
         this.keycloakId = StorageId.keycloakId(model, String.valueOf(getEntity().getId()));
     }
 
-    // TODO: Only tests for rest api
     public User getEntity() {
         return this.entity;
     }

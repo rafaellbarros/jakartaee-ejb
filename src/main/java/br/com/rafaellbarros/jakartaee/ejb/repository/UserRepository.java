@@ -27,6 +27,7 @@ import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Stateless
 public class UserRepository extends BaseFederationRepository<User> {
@@ -137,8 +138,7 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     @Override
     public List<UserModel> getUsers(Integer firstResult, Integer maxResults, RealmModel realm) {
-        logger.debug("getUsers called");
-
+        logger.info("getUsers called");
         TypedQuery<User> query = em.createNamedQuery("getAllUsers", User.class);
 
         List<User> results = query.getResultList();
@@ -153,29 +153,23 @@ public class UserRepository extends BaseFederationRepository<User> {
             return Collections.EMPTY_LIST;
         }
 
-        List<UserModel> users = new LinkedList<>();
-        // TODO: for SSO
-        // for (User entity : results) users.add(new UserAdapter(this.session, realm, this.model, entity));
-
-        for (User entity: results) {
-            users.add(new UserAdapterModel(entity));
-        }
-
-
-        return users;
+        // TODO: Uncomment for SSO
+        // getUsersModel(realm, results);
+        return getUserAdapterModelsApi(results);
     }
+
 
     @Override
     public List<UserModel> searchForUserByUsernameOrEmail(String search, Integer firstResult, Integer maxResults, RealmModel realm) {
-        logger.debugf("searchForUserByUsernameOrEmail called with search = {}", search);
+        logger.info("searchForUserByUsernameOrEmail called with search: " + search);
 
-        TypedQuery<User> query = em.createQuery(this.config.querySearchForUser(), User.class);
-
+        TypedQuery<User> query = em.createNamedQuery("searchForUser", User.class);
         query.setParameter("search", "%" + search.toLowerCase() + "%");
 
         if (firstResult != -1) {
             query.setFirstResult(firstResult);
         }
+
         if (maxResults != -1) {
             query.setMaxResults(maxResults);
         }
@@ -187,16 +181,13 @@ public class UserRepository extends BaseFederationRepository<User> {
             return Collections.EMPTY_LIST;
         }
 
-        List<UserModel> users = new LinkedList<>();
-
-        for (User entity : results) users.add(new UserAdapter(this.session, realm, this.model, entity));
-        return users;
+        // TODO: Uncomment for SSO
+        // getUsersModel(realm, results);
+        return getUserAdapterModelsApi(results);
     }
 
     // https://access.redhat.com/solutions/32314
     // https://stackoverflow.com/questions/2506411/how-to-troubleshoot-ora-02049-and-lock-problems-in-general-with-oracle
-
-
     @Transactional
     public UserModel addUser(final String username) {
         try {
@@ -205,6 +196,7 @@ public class UserRepository extends BaseFederationRepository<User> {
             final Person person = persistPerson(username);
             final User user = persistUser(person);
 
+            // TODO: for SSO
             // UserAdapter userAdapter = new UserAdapter(this.session, realm, this.model, u);
             UserAdapterModel userAdapterModel = new UserAdapterModel(user);
             logger.info("addUser() successful User: " + user);
@@ -215,27 +207,6 @@ public class UserRepository extends BaseFederationRepository<User> {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private User persistUser(Person person) {
-        final User user = userBuilder.buildAdd(person);
-        em.persist(user);
-        em.flush();
-        return user;
-    }
-
-    private Person persistPerson(String username) {
-        final Person person = personBuilder.buildAdd(username);
-        em.persist(person);
-        em.flush();
-        return person;
-    }
-
-    private void isValidUsername(String username) {
-        if (!IdentityHelper.isValidUsername(em, username)) {
-            logger.errorf("Username {} already exists", username);
-            throw new RuntimeException("Username already exists.");
-        }
     }
 
     @Override
@@ -277,4 +248,34 @@ public class UserRepository extends BaseFederationRepository<User> {
         logger.info(UserRepository.class.getSimpleName() + " closing...");
     }
 
+    private static List<UserModel> getUserAdapterModelsApi(List<User> results) {
+        return results.stream().map(UserAdapterModel::new)
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private List<UserModel> getUsersModel(RealmModel realm, List<User> results) {
+        return results.stream().map(entity -> new UserAdapter(this.session, realm, this.model, entity))
+                .collect(Collectors.toCollection(LinkedList::new));
+    }
+
+    private User persistUser(Person person) {
+        final User user = userBuilder.buildAdd(person);
+        em.persist(user);
+        em.flush();
+        return user;
+    }
+
+    private Person persistPerson(String username) {
+        final Person person = personBuilder.buildAdd(username);
+        em.persist(person);
+        em.flush();
+        return person;
+    }
+
+    private void isValidUsername(String username) {
+        if (!IdentityHelper.isValidUsername(em, username)) {
+            logger.errorf("Username {} already exists", username);
+            throw new RuntimeException("Username already exists.");
+        }
+    }
 }

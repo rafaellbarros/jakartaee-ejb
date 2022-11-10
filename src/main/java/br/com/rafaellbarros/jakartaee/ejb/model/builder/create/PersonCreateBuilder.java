@@ -1,4 +1,4 @@
-package br.com.rafaellbarros.jakartaee.ejb.model.builder;
+package br.com.rafaellbarros.jakartaee.ejb.model.builder.create;
 
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
 
@@ -7,9 +7,9 @@ import java.sql.Date;
 import java.time.LocalDate;
 
 @Stateless
-public class PersonBuilder {
+public class PersonCreateBuilder {
 
-    public Person buildAdd(final String username) {
+    public Person build(final String username) {
         return Person.builder()
                 .name(username)
                 .middle("-")

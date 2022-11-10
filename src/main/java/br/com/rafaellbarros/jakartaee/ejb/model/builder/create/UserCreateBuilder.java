@@ -1,4 +1,4 @@
-package br.com.rafaellbarros.jakartaee.ejb.model.builder;
+package br.com.rafaellbarros.jakartaee.ejb.model.builder.create;
 
 import br.com.rafaellbarros.jakartaee.ejb.helper.CredentialHelper;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
@@ -7,9 +7,9 @@ import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
 import javax.ejb.Stateless;
 
 @Stateless
-public class UserBuilder {
+public class UserCreateBuilder {
 
-    public User buildAdd(final Person person) {
+    public User build(final Person person) {
         return User.builder()
                 .id(person.getId())
                 .person(person)

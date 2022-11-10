@@ -5,8 +5,9 @@ import br.com.rafaellbarros.jakartaee.ejb.config.UserFederationConfig;
 import br.com.rafaellbarros.jakartaee.ejb.core.repository.BaseFederationRepository;
 import br.com.rafaellbarros.jakartaee.ejb.helper.IdentityHelper;
 import br.com.rafaellbarros.jakartaee.ejb.model.adapter.UserAdapterModel;
-import br.com.rafaellbarros.jakartaee.ejb.model.builder.PersonBuilder;
-import br.com.rafaellbarros.jakartaee.ejb.model.builder.UserBuilder;
+import br.com.rafaellbarros.jakartaee.ejb.model.builder.create.PersonCreateBuilder;
+import br.com.rafaellbarros.jakartaee.ejb.model.builder.create.UserCreateBuilder;
+import br.com.rafaellbarros.jakartaee.ejb.model.builder.update.UserUpdateBuilder;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
 import org.jboss.logging.Logger;
@@ -42,10 +43,10 @@ public class UserRepository extends BaseFederationRepository<User> {
     protected EntityManager em;
 
     @EJB
-    private PersonBuilder personBuilder;
+    private PersonCreateBuilder personCreateBuilder;
 
     @EJB
-    private UserBuilder userBuilder;
+    private UserCreateBuilder userCreateBuilder;
 
     protected UserFederationConfig config;
 
@@ -64,16 +65,16 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     @Override
     public User getUserById(Long id) {
-        logger.debugf("getUserById called with id = {}", id);
+        logger.info("getUserById() called with id: " + id);
 
         User entity = em.find(User.class, id);
 
         if (entity == null || entity.getId() == null) {
-            logger.debugf("could not find user by id: {}", id);
+            logger.info("could not find user by id:" + id);
             return null;
         }
 
-        logger.debugf("Found user id: {}", entity.getId());
+        logger.info("Found user id: " + entity.getId());
 
         return entity;
     }
@@ -158,7 +159,6 @@ public class UserRepository extends BaseFederationRepository<User> {
         return getUserAdapterModelsApi(results);
     }
 
-
     @Override
     public List<UserModel> searchForUserByUsernameOrEmail(String search, Integer firstResult, Integer maxResults, RealmModel realm) {
         logger.info("searchForUserByUsernameOrEmail called with search: " + search);
@@ -210,6 +210,16 @@ public class UserRepository extends BaseFederationRepository<User> {
     }
 
     @Override
+    @Transactional
+    public Boolean updateUser(final User entity) {
+        logger.info("updateUser() called: " + entity);
+        if (entity == null) return false;
+        em.merge(entity);
+        logger.info("updateUser() successful updated user: " + entity);
+        return true;
+    }
+
+    @Override
     public Boolean removeUser(String externalId) {
         logger.debugf("removeUser called with externalId = {}", externalId);
 
@@ -221,20 +231,6 @@ public class UserRepository extends BaseFederationRepository<User> {
         em.getTransaction().commit();
 
         logger.infof("successful removed user: {}", entity.getUsername());
-        return true;
-    }
-
-    @Override
-    public Boolean updateUser(User entity) {
-        logger.debug("updateUser called");
-
-        if (entity == null) return false;
-
-        em.getTransaction().begin();
-        em.merge(entity);
-        em.getTransaction().commit();
-
-        logger.infof("successful updated user: {}", entity.getUsername());
         return true;
     }
 
@@ -259,14 +255,14 @@ public class UserRepository extends BaseFederationRepository<User> {
     }
 
     private User persistUser(Person person) {
-        final User user = userBuilder.buildAdd(person);
+        final User user = userCreateBuilder.build(person);
         em.persist(user);
         em.flush();
         return user;
     }
 
     private Person persistPerson(String username) {
-        final Person person = personBuilder.buildAdd(username);
+        final Person person = personCreateBuilder.build(username);
         em.persist(person);
         em.flush();
         return person;

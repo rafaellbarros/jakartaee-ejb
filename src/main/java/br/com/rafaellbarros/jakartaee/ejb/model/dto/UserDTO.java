@@ -1,11 +1,10 @@
 package br.com.rafaellbarros.jakartaee.ejb.model.dto;
 
-import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
+import br.com.rafaellbarros.jakartaee.ejb.model.request.UserRequestUpdateDTO;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
 import java.io.Serializable;
 
 @Setter
@@ -19,4 +18,13 @@ public class UserDTO implements Serializable {
     private String password;
     private String email;
 
+    public UserDTO() {}
+
+    public UserDTO(final UserRequestUpdateDTO updateDTO) {
+        this.id = updateDTO.getId();
+        this.person = updateDTO.getPerson();
+        this.username = updateDTO.getUsername();
+        this.password = updateDTO.getPassword();
+        this.email = updateDTO.getEmail();
+    }
 }

@@ -1,6 +1,7 @@
 package br.com.rafaellbarros.jakartaee.ejb.resource;
 
-import br.com.rafaellbarros.jakartaee.ejb.model.request.UserRequestDTO;
+import br.com.rafaellbarros.jakartaee.ejb.model.request.UserRequestCreateDTO;
+import br.com.rafaellbarros.jakartaee.ejb.model.request.UserRequestUpdateDTO;
 import br.com.rafaellbarros.jakartaee.ejb.service.UserService;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -149,12 +150,28 @@ public class UserResource {
             value = {
                     @APIResponse(
                             responseCode = "200",
-                            description = "We add the username",
+                            description = "We create the username",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON))})
     @Operation(summary = "Outputs User",
             description = "This method outputs User")
-    public Response addUser(UserRequestDTO userRequestDTO) {
-        return Response.ok(userService.addUser(userRequestDTO)).build();
+    public Response create(UserRequestCreateDTO userRequestCreateDTO) {
+        return Response.ok(userService.create(userRequestCreateDTO)).build();
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "200",
+                            description = "We update the User",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON))})
+    @Operation(summary = "Outputs User",
+            description = "This method outputs User")
+    public Response update(@PathParam("id") final Long id, UserRequestUpdateDTO userRequestUpdateDTO) {
+        return Response.ok(userService.update(id, userRequestUpdateDTO)).build();
     }
 
 

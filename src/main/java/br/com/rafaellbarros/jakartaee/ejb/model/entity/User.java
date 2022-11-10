@@ -26,7 +26,7 @@ public class User implements Serializable {
     @Id
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @MapsId()
     @JoinColumn(name = "ID_PERSON")
     private Person person;

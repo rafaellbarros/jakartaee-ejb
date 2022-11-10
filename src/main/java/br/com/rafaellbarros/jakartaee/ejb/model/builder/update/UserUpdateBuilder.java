@@ -15,7 +15,6 @@ public class UserUpdateBuilder {
 
     public User build(final UserDTO userDTO) {
         final Person person = personUpdateBuilder.build(userDTO.getPerson());
-
         return User.builder()
                 .id(userDTO.getId())
                 .person(person)

@@ -8,12 +8,16 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.keycloak.models.UserModel;
 
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 
 
 @RequestScoped
@@ -23,6 +27,9 @@ public class UserResource {
 
     @EJB
     private UserService userService;
+
+    @Context
+    private UriInfo uriInfo;
 
     @GET
     @Path("/{id}")
@@ -131,8 +138,7 @@ public class UserResource {
                     @APIResponse(
                             responseCode = "404",
                             description = "We could not find Users or Emails",
-                            content = @Content(mediaType = MediaType.TEXT_PLAIN))
-                    ,
+                            content = @Content(mediaType = MediaType.TEXT_PLAIN)),
                     @APIResponse(
                             responseCode = "200",
                             description = "We found the Users or Emails",
@@ -149,13 +155,18 @@ public class UserResource {
     @APIResponses(
             value = {
                     @APIResponse(
-                            responseCode = "200",
-                            description = "We create the username",
+                            responseCode = "404",
+                            description = "We could not find Users",
+                            content = @Content(mediaType = MediaType.TEXT_PLAIN)),
+                    @APIResponse(
+                            responseCode = "201",
+                            description = "We created the username",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON))})
-    @Operation(summary = "Outputs User",
-            description = "This method outputs User")
+    @Operation(summary = "Outputs User", description = "This method outputs User")
     public Response create(UserRequestCreateDTO userRequestCreateDTO) {
-        return Response.ok(userService.create(userRequestCreateDTO)).build();
+        final UserModel userModel = userService.create(userRequestCreateDTO);
+        final URI uri = uriInfo.getAbsolutePathBuilder().path(userModel.getId()).build();
+        return Response.created(uri).build();
     }
 
     @PUT
@@ -168,10 +179,30 @@ public class UserResource {
                             responseCode = "200",
                             description = "We update the User",
                             content = @Content(mediaType = MediaType.APPLICATION_JSON))})
-    @Operation(summary = "Outputs User",
-            description = "This method outputs User")
+    @Operation(summary = "This is to update  the User in the database", description = "This method update User")
     public Response update(@PathParam("id") final Long id, UserRequestUpdateDTO userRequestUpdateDTO) {
         return Response.ok(userService.update(id, userRequestUpdateDTO)).build();
+    }
+
+    @DELETE
+    @Path("/{externalId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponses(
+            value = {
+                    @APIResponse(
+                            responseCode = "404",
+                            description = "We could not find the externalId User",
+                            content = @Content(mediaType = MediaType.TEXT_PLAIN))
+                    ,
+                    @APIResponse(
+                            responseCode = "204",
+                            description = "User deleted from database",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON))})
+    @Operation(summary = "Delete user by externalId",
+            description = "This method delete User")
+    public Response delete(@PathParam("externalId") final String externalId) {
+        userService.delete(externalId);
+        return Response.noContent().build();
     }
 
 

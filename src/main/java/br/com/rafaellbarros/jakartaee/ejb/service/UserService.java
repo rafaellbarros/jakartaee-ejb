@@ -24,16 +24,31 @@ public class UserService {
     @EJB
     private UserUpdateBuilder userUpdateBuilder;
 
+    @SneakyThrows
     public UserDTO getById(final Long id) {
-        return UserMapper.INSTANCE.toDTO(userRepository.getUserById(id));
+        final User user = userRepository.getUserById(id);
+        if (user == null) {
+            throw new BusinessException("could not find user by id: " + id);
+        }
+        return UserMapper.INSTANCE.toDTO(user);
     }
 
+    @SneakyThrows
     public UserDTO getByUsername(final String username) {
-        return UserMapper.INSTANCE.toDTO(userRepository.getUserByUsername(username));
+        final User user = userRepository.getUserByUsername(username);
+        if (user == null) {
+            throw new BusinessException("username not found: " + username);
+        }
+        return UserMapper.INSTANCE.toDTO(user);
     }
 
+    @SneakyThrows
     public UserDTO getByEmail(final String email) {
-        return UserMapper.INSTANCE.toDTO(userRepository.getUserByEmail(email));
+        final User user = userRepository.getUserByEmail(email);
+        if (user == null) {
+            throw new BusinessException("email not found: " + email);
+        }
+        return UserMapper.INSTANCE.toDTO(user);
     }
 
     public int getUsersCount() {
@@ -61,9 +76,17 @@ public class UserService {
         Boolean isUpdated = userRepository.updateUser(userUpdate);
 
         if (!isUpdated) {
-            throw new BusinessException("Ocorreu um erro ao tentar atualizar o usuário.");
+            throw new BusinessException("An error occurred while trying to update the user.");
         }
 
         return UserMapper.INSTANCE.toDTO(userUpdate);
+    }
+
+    @SneakyThrows
+    public void delete(final String externalId) {
+        Boolean isDeleted = userRepository.removeUser(externalId);
+        if (!isDeleted) {
+            throw new BusinessException("An error occurred while trying to delete the user.");
+        }
     }
 }

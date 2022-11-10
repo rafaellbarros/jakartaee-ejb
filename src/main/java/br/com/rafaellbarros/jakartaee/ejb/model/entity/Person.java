@@ -6,7 +6,6 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Date;
 
-@ToString
 @Builder
 @Setter
 @Getter
@@ -14,11 +13,13 @@ import java.sql.Date;
 @NoArgsConstructor
 @EqualsAndHashCode
 @NamedQueries({
-        @NamedQuery(name="getPersonByISSN", query="select p from Person p where p.id = :issn")
+        @NamedQuery(name = Person.GET_PERSON_BY_ISSN, query = "select p from Person p where p.id = :issn")
 })
 @Entity
 @Table(name = "PERSON", schema = "OT")
 public class Person implements Serializable {
+
+    public static final String GET_PERSON_BY_ISSN = "Person.getPersonByISSN";
 
     @Id
     @Column(name = "ID_PERSON", nullable = false, unique = true)
@@ -45,5 +46,9 @@ public class Person implements Serializable {
 
     @Column(name = "ST_PERSON", nullable = true, length = 1)
     private String status;
+
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+    @JoinColumn(name = "ID_PERSON")
+    private User user;
 
 }

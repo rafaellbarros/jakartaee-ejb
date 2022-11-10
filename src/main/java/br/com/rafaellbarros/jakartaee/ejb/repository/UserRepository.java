@@ -7,7 +7,6 @@ import br.com.rafaellbarros.jakartaee.ejb.helper.IdentityHelper;
 import br.com.rafaellbarros.jakartaee.ejb.model.adapter.UserAdapterModel;
 import br.com.rafaellbarros.jakartaee.ejb.model.builder.create.PersonCreateBuilder;
 import br.com.rafaellbarros.jakartaee.ejb.model.builder.create.UserCreateBuilder;
-import br.com.rafaellbarros.jakartaee.ejb.model.builder.update.UserUpdateBuilder;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.Person;
 import br.com.rafaellbarros.jakartaee.ejb.model.entity.User;
 import org.jboss.logging.Logger;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Stateless
+@Transactional
 public class UserRepository extends BaseFederationRepository<User> {
 
     protected static final Logger logger = Logger.getLogger(UserRepository.class);
@@ -81,22 +81,20 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     @Override
     public User getUserByUsername(String username) {
-        logger.debugf("getUserByUsername called with username = {}", username);
-
+        logger.info("getUserByUsername() called with username: " + username);
         List<User> result = Collections.EMPTY_LIST;
 
         try {
-            TypedQuery<User> query = em.createNamedQuery("getUserByUsername", User.class);
+            TypedQuery<User> query = em.createNamedQuery(User.GET_USER_BY_USERNAME, User.class);
             query.setParameter("username", username);
-            query.setHint("org.hibernate.comment", "search user by username.");
 
             result = query.getResultList();
 
             if (result.isEmpty()) {
-                logger.debugf("username {} not found", username);
+                logger.infof("username {} not found", username);
             }
         }catch (Exception e) {
-            logger.debugf("getUserByUsername failed with message: {}", e.getMessage());
+            logger.infof("getUserByUsername() failed with message: {}", e.getMessage());
         }
 
         return result.isEmpty() ? null : result.get(0);
@@ -105,43 +103,27 @@ public class UserRepository extends BaseFederationRepository<User> {
     // TODO: Refactoring
     @Override
     public User getUserByEmail(final String email) {
-        logger.debugf("getUserByEmail called with email = {}", email);
-        // TODO: CREATE VALIDATION OR USER BEANVALIDATION IN DTO
-        if (this.getConfig() == null) {
-            System.out.println("A");
-        } else {
-            if (this.getConfig().queryUserByEmail() == null) {
-                System.out.println("B");
-            }
-        }
-        if (entityManager == null) {
-            System.out.println("C");
-        }
+        logger.infof("getUserByEmail() called with email: {}", email);
 
-        TypedQuery<User> query = em.createNamedQuery("getUserByEmail",  User.class);
+        TypedQuery<User> query = em.createNamedQuery(User.GET_USER_BY_EMAIL,  User.class);
         query.setParameter("email", email);
-        query.setHint("org.hibernate.comment", "search user by email.");
-
         List<User> result = query.getResultList();
-
         if (result.isEmpty()) {
             logger.infof("could not find user by email: {}", email);
         }
-
         return result.isEmpty() ? null : result.get(0);
     }
 
     @Override
     public int getUsersCount() {
-        logger.debug("getUsersCount called");
-        return ((Number) em.createNamedQuery("getUserCount").getSingleResult()).intValue();
+        logger.info("getUsersCount() called");
+        return ((Number) em.createNamedQuery(User.GET_USER_COUNT).getSingleResult()).intValue();
     }
 
     @Override
     public List<UserModel> getUsers(Integer firstResult, Integer maxResults, RealmModel realm) {
         logger.info("getUsers called");
-        TypedQuery<User> query = em.createNamedQuery("getAllUsers", User.class);
-
+        TypedQuery<User> query = em.createNamedQuery(User.GET_ALL_USERS, User.class);
         List<User> results = query.getResultList();
 
         if (firstResult >= 0)
@@ -160,10 +142,11 @@ public class UserRepository extends BaseFederationRepository<User> {
     }
 
     @Override
-    public List<UserModel> searchForUserByUsernameOrEmail(String search, Integer firstResult, Integer maxResults, RealmModel realm) {
-        logger.info("searchForUserByUsernameOrEmail called with search: " + search);
+    public List<UserModel> searchForUserByUsernameOrEmail(String search, Integer firstResult, Integer maxResults,
+                                                          RealmModel realm) {
+        logger.infof("searchForUserByUsernameOrEmail called with search: {}", search);
 
-        TypedQuery<User> query = em.createNamedQuery("searchForUser", User.class);
+        TypedQuery<User> query = em.createNamedQuery(User.SEARCH_FOR_USERNAME_OR_EMAIL, User.class);
         query.setParameter("search", "%" + search.toLowerCase() + "%");
 
         if (firstResult != -1) {
@@ -188,10 +171,9 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     // https://access.redhat.com/solutions/32314
     // https://stackoverflow.com/questions/2506411/how-to-troubleshoot-ora-02049-and-lock-problems-in-general-with-oracle
-    @Transactional
     public UserModel addUser(final String username) {
         try {
-            logger.info("addUser() called with username: " + username);
+            logger.infof("addUser() called with username: {}", username);
             isValidUsername(username);
             final Person person = persistPerson(username);
             final User user = persistUser(person);
@@ -210,7 +192,6 @@ public class UserRepository extends BaseFederationRepository<User> {
     }
 
     @Override
-    @Transactional
     public Boolean updateUser(final User entity) {
         logger.info("updateUser() called: " + entity);
         if (entity == null) return false;
@@ -221,16 +202,12 @@ public class UserRepository extends BaseFederationRepository<User> {
 
     @Override
     public Boolean removeUser(String externalId) {
-        logger.debugf("removeUser called with externalId = {}", externalId);
-
+        logger.infof("removeUser() called with externalId: {}", externalId);
         User entity = getUserByUsername(externalId);
         if (entity == null) return false;
-
-        em.getTransaction().begin();
-        em.remove(entity);
-        em.getTransaction().commit();
-
-        logger.infof("successful removed user: {}", entity.getUsername());
+        em.remove(entity.getPerson());
+        em.flush();
+        logger.infof("successful() removed user: {}", entity.getUsername());
         return true;
     }
 
